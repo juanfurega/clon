@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment variables
+.env
+
+# Datos
+data/
+*.json
+*.ndjson
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Chroma
+chroma/
+
+# Jupyter
+.ipynb_checkpoints/
