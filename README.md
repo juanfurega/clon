@@ -1,4 +1,4 @@
-# Proyecto: Clonación Digital — Contexto para agente de desarrollo
+# Proyecto: Clonación Digital
 
 ## Estructura de carpetas adoptada
 
