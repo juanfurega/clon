@@ -19,11 +19,11 @@ Mapeo con las 4 capas conceptuales: `collection/` = Recolección, `processing/` 
 ## Estado del proyecto
 
 - [x] Esqueleto inicial
-- [x] Esquema de base de datos
-- [ ] Implementación de recolección
-- [ ] Implementación de procesamiento
-- [ ] Implementación de modelado
-- [ ] Interfaz conversacional
+- [x] Esquema de base de datos y cargador relacional (PostgreSQL)
+- [ ] Implementación de recolección (pendiente para datos reales de X/Instagram)
+- [x] Implementación de procesamiento (limpieza spaCy + anonimización + embeddings en Chroma)
+- [x] Implementación de modelado (System Prompt enriquecido + RAG + soporte Gemini/OpenAI/Ollama)
+- [x] Interfaz conversacional (Web UI moderna con FastAPI + Streaming SSE + Historial)
 
 ## Objetivo del proyecto
 
@@ -51,15 +51,12 @@ Estas capas deben quedar razonablemente desacopladas entre sí (cada una es reem
 | NLP / limpieza | spaCy | Buen soporte en español |
 | Embeddings | `sentence-transformers` (local) | Alternativa: APIs con capa gratuita (Cohere, Google) si el hardware es limitado |
 | Orquestación / RAG | LlamaIndex (preferido sobre LangChain para este caso: "preguntar sobre mis propios documentos") | |
-| Interfaz | **Por definir** — ver nota abajo | |
-| Modelo de lenguaje | API con capa gratuita/económica, o modelo open-source local (a definir) | |
+| Interfaz | Web UI moderna + FastAPI | Desacoplada, con streaming SSE e historial |
+| Modelo de lenguaje | Groq Cloud / Gemini (configurable en `.env`) | Ultra-rápido |
 
-### Nota importante — Interfaz aún no decidida
+### Interfaz conversacional
 
-**Streamlit todavía NO está confirmado como la interfaz definitiva.** El documento original lo sugiere para un prototipo rápido (ya tengo experiencia previa con él), pero quiero mantener esta decisión abierta. Al diseñar el proyecto:
-
-- No acoplar la lógica de negocio (capas 1-3) a Streamlit.
-- Dejar la capa de interacción como un módulo separado que pueda montarse sobre Streamlit, FastAPI, u otra alternativa sin reescribir el resto del sistema.
+La interfaz adoptada es una **Web UI moderna** montada sobre **FastAPI**, con streaming en tiempo real (Server-Sent Events), historial de conversaciones persistente y visor de memorias RAG. La capa de interacción se mantiene completamente desacoplada de la lógica de negocio.
 
 ## Enfoque de "modelado" elegido
 
@@ -94,7 +91,17 @@ El orden de trabajo debe seguir esta secuencia — no avanzar a un módulo sin t
 Estos puntos no son una capa técnica nueva — son reglas de negocio que conviene poder implementar sobre la arquitectura ya definida (permisos en la base de datos, metadatos, flags), sin necesidad de rediseñar nada ahora.
 
 ## Resumen de decisiones abiertas para el agente
-
-- [ ] Interfaz final: Streamlit vs. otra opción (mantener desacoplada mientras tanto).
-- [ ] Proveedor de modelo de lenguaje: API con capa gratuita vs. modelo open-source local.
+ 
+- [x] Interfaz final: Web UI moderna + FastAPI (adoptada).
+- [x] Proveedor de modelo de lenguaje: Groq Cloud (con fallback a Gemini).
 - [ ] Alcance inicial del agente de acciones (email, calendario) — **fuera de scope por ahora**.
+
+---
+
+## 📌 Recordatorio: Tareas al cargar datos reales (X / Instagram / Notas)
+
+Cuando se extraigan y carguen los datos reales definitivos:
+1. **Configurar Whitelist (`config/privacy_rules.json`)**: Definir tu nombre propio, usuarios y términos que el modelo **no** debe anonimizar (para no anonimizar al autor del clon).
+2. **Configurar Alias y Personas Frecuentes**: Mapear apodos o variantes de nombres de amigos/familiares conocidos para una anonimización consistente (`[PERSONA_1]`, `[AMIGO_X]`).
+3. **Auditar entidades detectadas en PostgreSQL**: Revisar la tabla `mentioned_entities` generada por spaCy antes de la vectorización final a Chroma si se desea validar falsos positivos/negativos.
+4. **Limpieza de Encoding de Instagram**: Asegurar la conversión de caracteres Latin-1 / UTF-8 (*mojibake*) en el parser de Instagram.

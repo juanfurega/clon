@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuequi — Clon Digital</title>
+  <meta name="description" content="Interfaz conversacional interactiva para Cuequi, clon digital personal basado en Juan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar / Panel de Control -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Perfil estático de Cuequi con foto fija -->
+      <div class="brand">
+        <div class="avatar-container">
+          <div class="avatar-ring">
+            <div class="avatar-core" id="sidebar-avatar">
+              <img id="avatar-img" src="/static/uploads/avatar.png" alt="Foto de Cuequi" onerror="this.style.display='none'; document.getElementById('avatar-initials').style.display='block';">
+              <span id="avatar-initials" style="display: none;">CQ</span>
+            </div>
+          </div>
+        </div>
+        <div class="brand-text">
+          <h1>Cuequi</h1>
+          <span class="badge-status"><span class="pulse-dot"></span> En línea</span>
+        </div>
+      </div>
+
+      <!-- Botón Nueva Conversación -->
+      <button class="btn-new-chat" onclick="startNewChat()">
+        <span>➕</span> Nueva Conversación
+      </button>
+
+      <!-- Historial de Conversaciones -->
+      <div class="sidebar-section history-section">
+        <h2 class="section-title">HISTORIAL DE CONVERSACIONES</h2>
+        <div class="sessions-list" id="sessions-list">
+          <div class="session-loading">Cargando conversaciones...</div>
+        </div>
+      </div>
+
+      <!-- Estadísticas del Sistema -->
+      <div class="sidebar-section system-stats-section">
+        <h2 class="section-title">ESTADO DEL SISTEMA</h2>
+        <div class="stats-row">
+          <div class="mini-stat" title="Textos en base relacional">
+            <span class="mini-stat-icon">📚</span>
+            <span class="mini-stat-val" id="stat-texts">-</span>
+            <span class="mini-stat-lbl">Textos</span>
+          </div>
+          <div class="mini-stat" title="Vectores en base Chroma">
+            <span class="mini-stat-icon">🧠</span>
+            <span class="mini-stat-val" id="stat-vectors">-</span>
+            <span class="mini-stat-lbl">Vectores</span>
+          </div>
+          <div class="mini-stat" title="Proveedor LLM activo">
+            <span class="mini-stat-icon">⚡</span>
+            <span class="mini-stat-val" id="stat-model">GROQ</span>
+            <span class="mini-stat-lbl">Modelo</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-container">
+      <header class="chat-header">
+        <div class="chat-header-info">
+          <h2>Conversación con Cuequi</h2>
+          <p class="subtitle">Simulación basada en Juan</p>
+        </div>
+        <div class="header-tags">
+          <span class="tag">PostgreSQL</span>
+          <span class="tag">ChromaDB</span>
+          <span class="tag">spaCy</span>
+          <span class="tag">LLM</span>
+        </div>
+      </header>
+
+      <div class="messages-viewport" id="messages-viewport">
+        <!-- Los mensajes se renderizan dinámicamente -->
+      </div>
+
+      <!-- Input Bar -->
+      <footer class="chat-input-area">
+        <form id="chat-form" class="chat-form" onsubmit="handleFormSubmit(event)">
+          <div class="input-wrapper">
+            <textarea
+              id="user-input"
+              rows="1"
+              placeholder="Escribe tu mensaje a Cuequi..."
+              autocomplete="off"
+              onkeydown="handleKeyDown(event)"
+            ></textarea>
+            <button type="submit" id="btn-send" class="btn-send" title="Enviar mensaje">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </footer>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

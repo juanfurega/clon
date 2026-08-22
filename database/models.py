@@ -15,13 +15,13 @@ class Source(Base):
     platform = Column(String(50), nullable=False)  # ej. "twitter", "instagram", "reflexion_personal"
     raw_file_path = Column(Text)  # ruta al archivo JSON/NDJSON crudo
     
-    # Relación uno-a-muchos con Text
+    # Relación uno-a-muchos con TextEntry
     # relationship: permite navegar entre objetos relacionados sin escribir SQL manual
     # back_populates: crea la relación bidireccional para poder acceder desde ambos lados
-    texts = relationship("Text", back_populates="source")
+    texts = relationship("TextEntry", back_populates="source")
 
 
-class Text(Base):
+class TextEntry(Base):
     """Textos individuales recolectados de las fuentes."""
     __tablename__ = 'texts'
     
@@ -43,7 +43,7 @@ class MentionedEntity(Base):
     __tablename__ = 'mentioned_entities'
     
     id = Column(Integer, primary_key=True)
-    text_id = Column(Integer, ForeignKey('texts.id'), nullable=False)
+    text_id = Column(Integer, ForeignKey('texts.id'), nullable=False)  # FK a tabla 'texts' (clase TextEntry)
     entity_name = Column(Text)  # nombre de la persona mencionada
     anonymized = Column(Boolean, default=False)  # si fue anonimizado en el procesamiento
     
@@ -52,5 +52,5 @@ class MentionedEntity(Base):
         Index('idx_mentioned_entities_text_id', 'text_id'),
     )
     
-    # Relación con Text
-    text = relationship("Text", back_populates="mentioned_entities")
+    # Relación con TextEntry
+    text = relationship("TextEntry", back_populates="mentioned_entities")
