@@ -17,7 +17,7 @@ class LLMClient:
         self.openai_key = os.getenv("OPENAI_API_KEY")
         self.ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
-        # Detección automática (Groq tiene prioridad si está presente por su velocidad ultra-rápida)
+        # Detección automática
         if provider:
             self.provider = provider.lower()
         elif self.groq_key:
@@ -42,8 +42,8 @@ class LLMClient:
             return os.getenv("OLLAMA_MODEL", "llama3")
         return "mock"
 
-    def generate(self, system_prompt: str, user_prompt: str, temperature: float = 0.7) -> Dict[str, Any]:
-        """Genera una respuesta completa."""
+    def generate(self, system_prompt: str, user_prompt: str, temperature: float = 0.2) -> Dict[str, Any]:
+        """Genera una respuesta completa con baja temperatura para evitar alucinaciones."""
         if self.provider == "groq" and self.groq_key:
             return self._generate_groq(system_prompt, user_prompt, temperature)
         elif self.provider == "gemini" and self.gemini_key:
@@ -55,8 +55,8 @@ class LLMClient:
         else:
             return self._generate_mock(system_prompt, user_prompt)
 
-    def generate_stream(self, system_prompt: str, user_prompt: str, temperature: float = 0.7) -> Generator[str, None, None]:
-        """Genera la respuesta token por token en tiempo real (Streaming)."""
+    def generate_stream(self, system_prompt: str, user_prompt: str, temperature: float = 0.2) -> Generator[str, None, None]:
+        """Genera la respuesta token por token en tiempo real (Streaming) con baja temperatura."""
         if self.provider == "groq" and self.groq_key:
             from groq import Groq
             client = Groq(api_key=self.groq_key)
@@ -193,39 +193,36 @@ class LLMClient:
     def _generate_ollama(self, system_prompt: str, user_prompt: str, temperature: float) -> Dict[str, Any]:
         try:
             import requests
+            url = f"{self.ollama_base_url}/api/chat"
             payload = {
                 "model": self.model_name,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                "stream": False,
-                "options": {"temperature": temperature}
+                "options": {"temperature": temperature},
+                "stream": False
             }
-            res = requests.post(f"{self.ollama_base_url}/api/chat", json=payload, timeout=60)
+            res = requests.post(url, json=payload, timeout=60)
             data = res.json()
             return {
-                "text": data["message"]["content"],
-                "provider": "Ollama Local",
+                "text": data.get("message", {}).get("content", ""),
+                "provider": "Ollama (Local)",
                 "model": self.model_name,
                 "status": "success"
             }
         except Exception as e:
             return {
-                "text": f"[Error conectando a Ollama en {self.ollama_base_url}: {e}]",
-                "provider": "Ollama Local",
+                "text": f"[Error conectando a Ollama: {e}]",
+                "provider": "Ollama (Local)",
                 "model": self.model_name,
                 "status": "error"
             }
 
     def _generate_mock(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
         return {
-            "text": (
-                "[Modo Simulado / Sin API Key]: "
-                "Para obtener respuestas en vivo del LLM, agrega tu GROQ_API_KEY o GEMINI_API_KEY en el archivo .env. "
-                "El motor RAG y la recuperacion semantica desde Chroma ya estan 100% operativos."
-            ),
-            "provider": "Modo Simulado (Configurar .env)",
-            "model": "none",
-            "status": "warning"
+            "text": "hola ;) estoy funcionando en modo simulación local sin API configurada.",
+            "provider": "Mock",
+            "model": "local-fallback",
+            "status": "mock"
         }
