@@ -11,11 +11,13 @@ ENV/
 
 # Environment variables
 .env
+.env.example
 
 # Datos
 data/
 *.json
 *.ndjson
+modeling/prompt_templates.py
 
 # IDE
 .vscode/

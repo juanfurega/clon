@@ -1,10 +1,10 @@
-"""Cargador automático de archivos Markdown (.md) hacia PostgreSQL."""
+"""Cargador automático de archivos Markdown (.md) hacia PostgreSQL con preservación de contexto de títulos."""
 
 import os
 import glob
 import re
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List
 
 from database.engine import SessionLocal, init_db
 from database.models import Source, TextEntry
@@ -13,88 +13,89 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
 def parse_markdown_sections(content: str) -> List[str]:
-    """Divide un archivo Markdown en bloques de texto independientes por encabezados o separadores.
-    
-    Criterios de división:
-    1. Encabezados de nivel 1, 2 o 3 (# Título, ## Subtítulo, ### Tema).
-    2. Separadores horizontales (--- o ***).
+    """Divide un archivo Markdown en bloques de texto independientes por encabezados o separadores,
+    preservando el título principal del documento para dar contexto semántico a cada sección.
     """
     if not content.strip():
         return []
 
-    # Dividir por encabezados (# , ## , ### ) o por separadores (---)
-    pattern = r"(?m)^(?:#{1,3}\s+.+|---|\*\*\*)$"
-    matches = list(re.finditer(pattern, content))
-    
-    if not matches:
-        # Si no hay encabezados, todo el archivo es un único fragmento
-        clean = content.strip()
-        return [clean] if clean else []
-
+    lines = content.splitlines()
+    main_title = ""
     sections = []
-    
-    # Texto previo al primer encabezado (si existe)
-    if matches[0].start() > 0:
-        preamble = content[:matches[0].start()].strip()
-        if preamble:
-            sections.append(preamble)
+    current_header = ""
+    current_lines = []
 
-    for i in range(len(matches)):
-        start = matches[i].start()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(content)
-        chunk = content[start:end].strip()
-        if chunk and chunk not in ["---", "***"]:
-            sections.append(chunk)
+    for line in lines:
+        stripped = line.strip()
+        
+        # Detectar título H1 principal
+        if stripped.startswith("# ") and not main_title:
+            main_title = stripped.replace("# ", "").strip()
+            continue
+
+        # Detectar encabezados de sección (## o ###) o divisores (---)
+        if re.match(r"^(?:#{1,3}\s+.+|---|\*\*\*)$", stripped):
+            if current_lines:
+                body = "\n".join(current_lines).strip()
+                if body:
+                    prefix = f"[{main_title}] " if main_title else ""
+                    header_str = f"{current_header}\n\n" if current_header else ""
+                    full_chunk = f"{prefix}{header_str}{body}".strip()
+                    sections.append(full_chunk)
+                current_lines = []
+            
+            if not stripped.startswith("---") and not stripped.startswith("***"):
+                current_header = stripped
+            else:
+                current_header = ""
+        else:
+            current_lines.append(line)
+
+    # Última sección
+    if current_lines:
+        body = "\n".join(current_lines).strip()
+        if body:
+            prefix = f"[{main_title}] " if main_title else ""
+            header_str = f"{current_header}\n\n" if current_header else ""
+            full_chunk = f"{prefix}{header_str}{body}".strip()
+            sections.append(full_chunk)
 
     return sections
 
 
 def load_markdown_files(data_folder: str = DATA_DIR, specific_file: str = None) -> int:
-    """Escanea la carpeta data/ buscando archivos .md y carga sus secciones a PostgreSQL.
-    
-    Args:
-        data_folder: Carpeta donde buscar archivos Markdown.
-        specific_file: Opcional, ruta a un archivo .md específico.
-        
-    Returns:
-        int: Total de secciones/textos cargados.
-    """
+    """Escanea la carpeta data/ buscando archivos .md y carga sus secciones a PostgreSQL."""
     print("=" * 60)
-    print("📂 CARGADOR DE ARCHIVOS MARKDOWN A POSTGRESQL")
+    print("[CARGADOR DE ARCHIVOS MARKDOWN A POSTGRESQL]")
     print("=" * 60)
     
-    # Asegurar que las tablas existan
     init_db()
 
     if specific_file:
         if not os.path.exists(specific_file):
-            print(f"❌ Error: El archivo {specific_file} no existe.")
+            print(f"[!] Error: El archivo {specific_file} no existe.")
             return 0
         md_files = [specific_file]
     else:
-        # Buscar automáticamente todos los archivos .md en data/
         search_pattern = os.path.join(data_folder, "*.md")
         md_files = glob.glob(search_pattern)
 
     if not md_files:
-        print(f"ℹ️ No se encontraron archivos .md en la carpeta: {data_folder}")
-        print("💡 Crea tus archivos Markdown (ej: data/biografia.md, data/reflexiones.md) y vuelve a ejecutar este comando.")
+        print(f"[i] No se encontraron archivos .md en la carpeta: {data_folder}")
         return 0
 
-    print(f"🔍 Archivos Markdown encontrados: {len(md_files)}")
+    print(f"[i] Archivos Markdown encontrados: {len(md_files)}")
     for f in md_files:
-        print(f"  • {os.path.basename(f)}")
+        print(f"  * {os.path.basename(f)}")
 
     session = SessionLocal()
     total_inserted = 0
 
     try:
-        # Cache de fuentes existentes
         sources_cache = {s.platform: s for s in session.query(Source).all()}
 
         for file_path in md_files:
             file_name = os.path.basename(file_path)
-            # El nombre del archivo (sin .md) se usa como plataforma/fuente
             platform = os.path.splitext(file_name)[0]
 
             if platform not in sources_cache:
@@ -105,14 +106,12 @@ def load_markdown_files(data_folder: str = DATA_DIR, specific_file: str = None) 
 
             source_obj = sources_cache[platform]
 
-            # Leer contenido del Markdown
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             sections = parse_markdown_sections(content)
             file_inserted = 0
 
-            # Obtener contenidos ya existentes en esta fuente para no duplicar
             existing_contents = {
                 t.content for t in session.query(TextEntry.content).filter(TextEntry.source_id == source_obj.id).all()
             }
@@ -134,17 +133,16 @@ def load_markdown_files(data_folder: str = DATA_DIR, specific_file: str = None) 
                 file_inserted += 1
                 total_inserted += 1
 
-            print(f"  ✅ '{file_name}': {file_inserted} nuevas secciones cargadas.")
+            print(f"  [OK] '{file_name}': {file_inserted} nuevas secciones cargadas.")
 
         session.commit()
         print("-" * 60)
-        print(f"🎉 Éxito: Se cargaron {total_inserted} textos nuevos en PostgreSQL (processed=False).")
-        print("📌 Siguiente paso: Ejecuta 'python -m processing.pipeline' para procesar los textos y vectorizarlos en Chroma.")
+        print(f"[EXITO] Se cargaron {total_inserted} textos nuevos en PostgreSQL (processed=False).")
         return total_inserted
 
     except Exception as e:
         session.rollback()
-        print(f"❌ Error durante la carga de Markdown: {e}")
+        print(f"[ERROR] durante la carga de Markdown: {e}")
         raise
     finally:
         session.close()

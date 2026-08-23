@@ -233,14 +233,7 @@ async function handleFormSubmit(e) {
       }
     }
 
-    if (retrievedDocs && retrievedDocs.length > 0) {
-      const ragHtml = buildRagAccordionHtml(retrievedDocs, sourcesMeta);
-      const ragContainer = document.createElement("div");
-      ragContainer.innerHTML = ragHtml;
-      contentWrapper.appendChild(ragContainer.firstElementChild);
-      scrollToBottom();
-    }
-
+    // Actualizar sidebar para reflejar el nuevo título de conversación
     loadSessionsList();
 
   } catch (err) {
@@ -288,7 +281,7 @@ function createBotMessageRow() {
   return row;
 }
 
-function appendBotMessage(text, retrievedDocs = [], sourcesMeta = []) {
+function appendBotMessage(text) {
   const row = document.createElement("div");
   row.className = "message-row bot-row";
   const avatarHtml = `<img src="${AVATAR_URL}" alt="Cuequi" onerror="this.outerHTML='CQ'">`;
@@ -298,18 +291,12 @@ function appendBotMessage(text, retrievedDocs = [], sourcesMeta = []) {
     .map(p => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
     .join("");
 
-  let ragHtml = "";
-  if (retrievedDocs && retrievedDocs.length > 0) {
-    ragHtml = buildRagAccordionHtml(retrievedDocs, sourcesMeta);
-  }
-
   row.innerHTML = `
     <div class="msg-avatar">${avatarHtml}</div>
     <div class="msg-content-wrapper">
       <div class="msg-bubble">
         ${paragraphs}
       </div>
-      ${ragHtml}
     </div>
   `;
   viewport.appendChild(row);
@@ -322,31 +309,6 @@ function renderMarkdownText(container, text) {
     .map(p => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
     .join("");
   container.innerHTML = paragraphs;
-}
-
-function buildRagAccordionHtml(retrievedDocs, sourcesMeta) {
-  const itemsHtml = retrievedDocs.map((doc, idx) => {
-    const meta = sourcesMeta[idx] || {};
-    const platform = meta.platform || "nota";
-    const date = meta.created_at ? meta.created_at.substring(0, 10) : "";
-    return `
-      <div class="rag-item">
-        <div class="rag-badge">📍 Fuente: ${platform.toUpperCase()} ${date ? '• ' + date : ''}</div>
-        <div>${escapeHtml(doc)}</div>
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <details class="rag-accordion">
-      <summary class="rag-summary">
-        🧠 <span>${retrievedDocs.length} memorias recuperadas de Chroma</span>
-      </summary>
-      <div class="rag-content">
-        ${itemsHtml}
-      </div>
-    </details>
-  `;
 }
 
 function scrollToBottom() {
