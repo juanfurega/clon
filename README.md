@@ -1,4 +1,4 @@
-# Cuequi — Clon Digital Conversacional & Arquitectura RAG
+# Cuequi — Clon Digital Conversacional
 
 **Cuequi** es un sistema de Inteligencia Artificial conversacional de extremo a extremo diseñado para replicar la identidad, memoria biográfica, modismos lingüísticos y patrones de razonamiento de una persona real a partir de su huella digital y textos personales.
 
