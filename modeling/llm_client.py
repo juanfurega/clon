@@ -72,7 +72,7 @@ class LLMClient:
             for chunk in stream:
                 content = chunk.choices[0].delta.content
                 if content:
-                    yield content
+                    yield content.replace("¿", "")
 
         elif self.provider == "gemini" and self.gemini_key:
             from google import genai
@@ -88,7 +88,7 @@ class LLMClient:
             )
             for chunk in response_stream:
                 if chunk.text:
-                    yield chunk.text
+                    yield chunk.text.replace("¿", "")
 
         elif self.provider == "openai" and self.openai_key:
             from openai import OpenAI
@@ -105,7 +105,7 @@ class LLMClient:
             for chunk in stream:
                 content = chunk.choices[0].delta.content
                 if content:
-                    yield content
+                    yield content.replace("¿", "")
         else:
             mock = self._generate_mock(system_prompt, user_prompt)
             yield mock["text"]
@@ -122,8 +122,9 @@ class LLMClient:
                 ],
                 temperature=temperature
             )
+            raw_text = completion.choices[0].message.content or ""
             return {
-                "text": completion.choices[0].message.content,
+                "text": raw_text.replace("¿", ""),
                 "provider": "Groq Cloud",
                 "model": self.model_name,
                 "status": "success"
@@ -150,8 +151,9 @@ class LLMClient:
                     temperature=temperature
                 )
             )
+            raw_text = response.text or ""
             return {
-                "text": response.text,
+                "text": raw_text.replace("¿", ""),
                 "provider": "Google Gemini",
                 "model": self.model_name,
                 "status": "success"
@@ -176,8 +178,9 @@ class LLMClient:
                 ],
                 temperature=temperature
             )
+            raw_text = response.choices[0].message.content or ""
             return {
-                "text": response.choices[0].message.content,
+                "text": raw_text.replace("¿", ""),
                 "provider": "OpenAI",
                 "model": self.model_name,
                 "status": "success"
@@ -205,8 +208,9 @@ class LLMClient:
             }
             res = requests.post(url, json=payload, timeout=60)
             data = res.json()
+            raw_text = data.get("message", {}).get("content", "") or ""
             return {
-                "text": data.get("message", {}).get("content", ""),
+                "text": raw_text.replace("¿", ""),
                 "provider": "Ollama (Local)",
                 "model": self.model_name,
                 "status": "success"

@@ -1,24 +1,30 @@
-# Core
+# Core & Config
 python-dotenv==1.0.0
+pydantic>=2.0.0
+python-dateutil==2.8.2
 
-# Base de datos
+# Base de datos relacional
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 
-# NLP y procesamiento
+# NLP, Limpieza y Embeddings
 spacy==3.7.2
-sentence-transformers==2.2.2
+sentence-transformers>=2.2.2
 
-# Vector database
-chromadb==0.4.18
+# Base vectorial
+chromadb>=0.4.18
 
-# RAG
-llama-index==0.9.6
+# LLM Providers & Inferencia
+groq>=0.9.0
+google-genai>=0.1.1
+openai>=1.0.0
 
-# Recolección de datos
+# API & Servidor Web
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+
+# Recolección de datos (opcional / exportadores)
 requests==2.31.0
 tweepy==4.14.0
 instaloader==4.10.1
-
-# Utilidades
-python-dateutil==2.8.2
