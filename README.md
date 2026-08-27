@@ -19,29 +19,6 @@ clon/
 └── tests/              # Pruebas unitarias y de integración
 ```
 
-```mermaid
-flowchart TD
-    subgraph Ingestion ["1. Ingesta & NLP Pipeline"]
-        MD[Archivos Markdown / Diarios / Chats] --> Loader[Markdown Loader]
-        Loader --> PG[(PostgreSQL - Raw Texts)]
-        PG --> Cleaner[Text Cleaner & Sanitizer]
-        Cleaner --> NER[spaCy NER - Detección PII]
-        NER --> Anon[Anonymizer con Whitelist]
-        Anon --> Embeddings[Sentence-Transformers]
-        Embeddings --> Chroma[(ChromaDB - Vector Store)]
-    end
-
-    subgraph Runtime ["2. Runtime & Inferencia"]
-        User([Usuario en Web UI]) -->|Prompt| API[FastAPI Server]
-        API --> Engine[CloneRAGEngine]
-        Engine -->|Búsqueda Semántica| Chroma
-        Chroma -->|Top-K Chunks Relevantes| Engine
-        Engine -->|Prompt Aumentado + Few-Shot| LLM[Groq Cloud / Gemini]
-        LLM -->|Streaming Tokens SSE| API
-        API -->|Render en Vivo| User
-    end
-```
-
 ---
 
 ## Stack Tecnológico
