@@ -1,12 +1,5 @@
 # Cuequi — Clon Digital Conversacional & Arquitectura RAG
 
-[![Python](https://img.shields.io/badge/Python-3.11%2B%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%2B-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-orange?logo=databricks&logoColor=white)](https://www.trychroma.com/)
-[![spaCy](https://img.shields.io/badge/spaCy-NLP%20%26%20NER-09A3D5?logo=spacy&logoColor=white)](https://spacy.io/)
-[![Groq](https://img.shields.io/badge/Groq%20Cloud-Ultra--Low%20Latency-F55036)](https://groq.com/)
-
 **Cuequi** es un sistema de Inteligencia Artificial conversacional de extremo a extremo diseñado para replicar la identidad, memoria biográfica, modismos lingüísticos y patrones de razonamiento de una persona real a partir de su huella digital y textos personales.
 
 El proyecto implementa una arquitectura desacoplada basada en **RAG (Retrieval-Augmented Generation)**, pipelines de anonimización de privacidad con **spaCy**, indexación semántica en **ChromaDB**, orquestación multi-proveedor de LLMs de ultra-baja latencia (**Groq Cloud / Google Gemini**) y una interfaz web moderna en tiempo real mediante **Server-Sent Events (SSE)**.
